@@ -110,6 +110,9 @@ class FindJuggerClient(discord.Client):
         # we do not want the bot to reply to itself
         if message.author.id == self.user.id:
             return
+        # only listen on find-jugger
+        if not message.channel == "find-jugger":
+            return
         
         # this is a basic try at a formula for a question about where jugger is
         if self.is_asking_where(message.content):
