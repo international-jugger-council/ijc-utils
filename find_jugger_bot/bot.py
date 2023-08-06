@@ -52,26 +52,8 @@ class FindJuggerClient(discord.Client):
         club_data_spreadsheet_id = '1KHNrKrpunvWNaGVStFhj7Ra2EC_kgK8sZQsxa2yiJuk'
         club_data_range = 'Club List!A2:O'
 
-        creds = None
-        # The file token.json stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
-        if os.path.exists('token.json'):
-            creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-        # If there are no (valid) credentials available, let the user log in.
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
-                creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open('token.json', 'w+') as token:
-                token.write(creds.to_json())
-
         try:
-            service = build('sheets', 'v4', credentials=creds)
+            service = build('sheets', 'v4', developerKey=google_token)
 
             # Call the Sheets API
             sheet = service.spreadsheets()
@@ -133,9 +115,9 @@ class FindJuggerClient(discord.Client):
         if self.is_asking_where(message.content):
             where_asked_about = self.where_asked_about(message.content)
             if where_asked_about != '?':
-                await message.reply(f"Hello! I think you're asking for jugger clubs near {where_asked_about}. {self.find_nearest_jugger(where_asked_about)} I am just a bot, though. Maybe you can find something better at https://juggercouncil.org/en/map", mention_author=True)
+                await message.reply(f"Hello! I think you're asking for jugger clubs near {where_asked_about}. {self.find_nearest_jugger(where_asked_about)} I am just a bot, though. Maybe you can find something better at https://juggercouncil.org/en/map . We have a pinned post here with more info, too!", mention_author=True)
             else:
-                await message.reply('Sorry, I am not a very smart bot. Try asking like "is there jugger near Copenhagen?" or have a look at https://juggercouncil.org/en/map', mention_author=True)
+                await message.reply('Sorry, I am not a very smart bot. Try asking like "is there jugger near Copenhagen?" or have a look at https://juggercouncil.org/en/map . We have a pinned post here with more info, too!', mention_author=True)
 
 
 intents = discord.Intents.default()
