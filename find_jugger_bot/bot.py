@@ -1,4 +1,4 @@
-import json, os, re
+import datetime, json, re
 from math import radians, degrees, sin, cos, asin, acos, sqrt
 import discord
 
@@ -18,6 +18,8 @@ bot_url = 'https://discord.com/api/oauth2/authorize?client_id=113764279693790824
 
 class FindJuggerClient(discord.Client):
     spreadsheet = None
+    spreadsheet_gotten = datetime.datetime.strptime("Jan 1 1970","%b %d %Y")
+    spreadsheet_spoil_timer_days = 7
 
     def is_asking_where(self, message):
         message = message.lower()
@@ -44,10 +46,10 @@ class FindJuggerClient(discord.Client):
         return "Unfortunately, I can't figure out where that is."
     
     def spin_up_spreadsheet(self):
-        if self.spreadsheet:
+        spreadsheet_age = datetime.datetime.now() - self.spreadsheet_gotten
+        if self.spreadsheet and spreadsheet_age.days < self.spreadsheet_spoil_timer_days:
             return
-        # If modifying these scopes, delete the file token.json.
-        SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+        print("spreadsheet spoiled!")
 
         club_data_spreadsheet_id = '1KHNrKrpunvWNaGVStFhj7Ra2EC_kgK8sZQsxa2yiJuk'
         club_data_range = 'Club List!A2:O'
@@ -66,6 +68,7 @@ class FindJuggerClient(discord.Client):
                 return
 
             self.spreadsheet = values
+            self.spreadsheet_gotten = datetime.datetime.now()
         except HttpError as err:
             print(err)
     
@@ -90,7 +93,8 @@ class FindJuggerClient(discord.Client):
         ARMORED = 7
         YOUTH = 8
         LAT = 9
-        LONG = 10 # I hate this
+        LONG = 10 
+        DESCRIPTION = 11 # I hate this
         for idx, club in enumerate(self.spreadsheet):
             if club[ACTIVE] == 'FALSE' or club[ARMORED] == 'TRUE' or club[YOUTH] == 'TRUE':
                 continue
@@ -99,7 +103,7 @@ class FindJuggerClient(discord.Client):
                 closest_distance = distance
                 closest_club = idx
         closest = self.spreadsheet[closest_club]
-        return f"The closest active club we know of is {closest[NAME]} in {closest[CITY]} ({closest_distance:.1f} km away). You can reach them through {closest[WEBSITE]}, {closest[PERSON]}, {closest[METHOD]}."
+        return f"The closest active club we know of is {closest[NAME]} in {closest[CITY]} ({closest_distance:.1f} km away). You can reach them through {closest[WEBSITE]}, {closest[PERSON]}, {closest[METHOD]}, {closest[DESCRIPTION]}."
 
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -111,7 +115,7 @@ class FindJuggerClient(discord.Client):
         if message.author.id == self.user.id:
             return
         # only listen on find-jugger
-        if not message.channel == "find-jugger":
+        if not message.channel.name == "find-jugger":
             return
         
         # this is a basic try at a formula for a question about where jugger is
