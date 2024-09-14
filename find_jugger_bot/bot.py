@@ -96,6 +96,8 @@ class FindJuggerClient(discord.Client):
         LONG = 10 
         DESCRIPTION = 11 # I hate this
         for idx, club in enumerate(self.spreadsheet):
+            if len(club) < ACTIVE:
+                continue
             if club[ACTIVE] == 'FALSE' or club[ARMORED] == 'TRUE' or club[YOUTH] == 'TRUE':
                 continue
             distance = self.great_circle(float(club[LAT]), float(club[LONG]), lat, long)
