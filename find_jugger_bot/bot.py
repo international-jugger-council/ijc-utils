@@ -105,7 +105,12 @@ class FindJuggerClient(discord.Client):
                 closest_distance = distance
                 closest_club = idx
         closest = self.spreadsheet[closest_club]
-        return f"The closest active club we know of is {closest[NAME]} in {closest[CITY]} ({closest_distance:.1f} km away). You can reach them through {closest[WEBSITE]}, {closest[PERSON]}, {closest[METHOD]}, {closest[DESCRIPTION]}."
+        contacts = ','.join([x for x in [closest[WEBSITE], closest[PERSON], closest[METHOD], closest[DESCRIPTION]] if x])
+        if closest_distance > 15:
+            closest_distance = f"({closest_distance:.1f} km away)"
+        else:
+            closest_distance = ''
+        return f"The closest active club we know of is {closest[NAME]} in {closest[CITY]}{closest_distance}. You can reach them through {contacts}."
 
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -117,8 +122,6 @@ class FindJuggerClient(discord.Client):
         if message.author.id == self.user.id:
             return
         # only listen on find-jugger
-        if not message.channel.name == "find-jugger":
-            return
         
         # this is a basic try at a formula for a question about where jugger is
         if self.is_asking_where(message.content):
