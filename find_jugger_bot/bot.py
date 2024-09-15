@@ -1,5 +1,7 @@
 import datetime, json, re
 from math import radians, degrees, sin, cos, asin, acos, sqrt
+
+from geopy import distance as calcdistance
 import discord
 
 from google.auth.transport.requests import Request
@@ -72,13 +74,6 @@ class FindJuggerClient(discord.Client):
         except HttpError as err:
             print(err)
     
-    # from @petehuston on medium (but it's actually just math)
-    def great_circle(self, lon1, lat1, lon2, lat2):
-        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-        return 6371 * (
-            acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon1 - lon2))
-        )
-    
     def closest_club_from_db(self, lat, long):
         self.spin_up_spreadsheet()
         closest_distance = 999999999
@@ -100,14 +95,14 @@ class FindJuggerClient(discord.Client):
                 continue
             if club[ACTIVE] == 'FALSE' or club[ARMORED] == 'TRUE' or club[YOUTH] == 'TRUE':
                 continue
-            distance = self.great_circle(float(club[LAT]), float(club[LONG]), lat, long)
+            distance = calcdistance.distance((float(club[LAT]), float(club[LONG])), (lat, long)).km
             if distance < closest_distance:
                 closest_distance = distance
                 closest_club = idx
         closest = self.spreadsheet[closest_club]
-        contacts = ','.join([x for x in [closest[WEBSITE], closest[PERSON], closest[METHOD], closest[DESCRIPTION]] if x])
+        contacts = ', '.join([x for x in [closest[WEBSITE], closest[PERSON], closest[METHOD], closest[DESCRIPTION]] if x])
         if closest_distance > 15:
-            closest_distance = f"({closest_distance:.1f} km away)"
+            closest_distance = f" ({closest_distance:.1f} km away)"
         else:
             closest_distance = ''
         return f"The closest active club we know of is {closest[NAME]} in {closest[CITY]}{closest_distance}. You can reach them through {contacts}."
