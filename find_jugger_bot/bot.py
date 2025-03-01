@@ -117,7 +117,7 @@ class FindJuggerClient(discord.Client):
         if message.author.id == self.user.id:
             return
         # only listen on find-jugger
-        if message.channel_id != 1133834951465390080: # it's a magic number :shrug:
+        if message.channel.name != "find-jugger":
             return
         # this is a basic try at a formula for a question about where jugger is
         if self.is_asking_where(message.content):
